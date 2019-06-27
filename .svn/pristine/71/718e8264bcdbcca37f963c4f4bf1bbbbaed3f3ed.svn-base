@@ -1,0 +1,66 @@
+tree grammar OracleWalker;
+
+options {
+  language = Java;
+  output = template;
+  tokenVocab = SchemaLang;
+  ASTLabelType = CommonTree;
+}
+
+@header{
+package eu.reitmayer.schemagen.lang;
+}
+
+@members {
+	public Schema schema = new Schema();
+	public String currentEntity = "";
+}
+
+schema_file:
+ ^(SCHEMA ID set_property* sd+=schema_def*) -> file(defs={$sd})
+ 
+	;
+
+schema_def:
+	  entity_def
+	| dom_def
+	| elem_def
+;
+
+
+set_property:
+	^(SET ID STRING) 
+	;
+	
+entity_def:
+	^(ENTITY ID {currentEntity = $ID.text;} elem_use+)
+	;
+
+dom_def returns[String domainID]:
+	^(DOMAIN ID (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER | t=TYPE_TIMESTAMP | t=TYPE_DATE) (LENGTH l=INT (PRECISION p=INT)?)? ) 
+	;
+	
+dom_use returns[String domainID]:
+	dom_def |
+	^(DOMAIN ID) 
+	;
+	
+elem_def returns[String elementID]:
+	^(ELEMENT id=ID (STEXT s=STRING)? (MTEXT m=STRING)? (LTEXT l=STRING)? dom_use)
+	;
+	
+
+key_elem_def returns[String elementID]:
+	^(KEY ed=elem_def) |
+	^(KEY ne=named_elem) 
+	;
+	
+named_elem returns[String elementID]:
+	^(ELEMENT ID) 
+	;
+	
+elem_use returns[String elementID, Boolean isKey]:
+	elem_def |
+	key_elem_def |
+	named_elem
+	;

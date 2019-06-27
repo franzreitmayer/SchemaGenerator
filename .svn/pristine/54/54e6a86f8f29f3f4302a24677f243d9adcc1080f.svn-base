@@ -1,0 +1,9 @@
+// entity customer
+entity customer (
+attr cust_name type string, // customer name
+attr cust_num type int,
+attr cust_steet type string length 50,
+attr cust_value type number length 14 precision 2);
+	
+// entity vendor	
+entity vendor (	attr vendor_name type string);

@@ -1,0 +1,36 @@
+package eu.reitmayer.schemagen.lang;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class SchemaEntity {
+
+	public String id;
+	
+	public List<SchemaElement> elements = new LinkedList<SchemaElement>();
+	
+	public List<SchemaElement> keys = new LinkedList<SchemaElement>();
+	
+	
+	public SchemaEntity(String id) {
+		super();
+		this.id = id;
+	}
+
+
+	public void addElement(SchemaElement element, Boolean isKey) {
+		elements.add(element);
+		if (isKey) { // if key, then also add to keys
+			keys.add(element);
+		}
+	}
+
+
+	@Override
+	public String toString() {
+		return "SchemaEntity [id=" + id + ", elements=" + elements + ", keys="
+				+ keys + "]";
+	}
+	
+	
+}

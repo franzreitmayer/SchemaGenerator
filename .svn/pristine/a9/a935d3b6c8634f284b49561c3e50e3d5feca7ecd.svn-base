@@ -1,0 +1,89 @@
+grammar SchemaLang;
+
+options {
+  language = Java;
+  output = AST;
+}
+
+
+@lexer::header {
+package eu.reitmayer.schemagen.lang;
+}
+
+@parser::header {
+package eu.reitmayer.schemagen.lang;
+}
+
+schema_file:
+	((entity_def SEMI) -> entity_def+
+	|(attr_def SEMI) -> attr_def+ )+
+	 
+	;
+	
+entity_def:
+	ENTITY ID '('
+		ua+=use_attr (',' ua+=use_attr)*
+	')' -> ^(ENTITY ID $ua+)
+	;
+
+use_attr:
+	attr_def -> attr_def |
+	key_attr_def -> key_attr_def;
+	
+key_attr_def:
+	KEY attr_def -> attr_def;
+	
+attr_def:
+	ATTR ID TYPE (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER) (LENGTH l=INT (PRECISION p=INT)?)?
+	-> ^(ATTR ID $t $l? $p?);
+
+WS :
+  (' ' | '\t' | '\f')+ {$channel=HIDDEN;};
+
+NL :
+   ('\r' '\n' | '\r' | '\n') {$channel=HIDDEN;};
+
+
+
+
+   
+ATTR: ('A' | 'a')('T' | 't')('T' | 't')('R' | 'r');
+
+TYPE: ('T' | 't')('Y' | 'y')('P' | 'p')('E' | 'e');
+
+KEY: ('K' | 'k')('E' | 'e')('Y' | 'y');
+
+LENGTH: ('L' | 'l')('E' | 'e')('N' | 'n')('G' | 'g')('T' | 't')('H' | 'h');
+
+PRECISION: ('P' | 'p')('R' | 'r')('E' | 'e')('C' | 'c')('I' | 'i')('S' | 's')('I' | 'i')('O' | 'o')('N' | 'n');
+
+ENTITY: ('E' | 'e')('N' | 'n')('T' | 't')('I' | 'i')('T' | 't')('Y' | 'y');
+ 
+TYPE_INT: ('I' | 'i')('N' | 'n')('T' | 't');
+
+
+TYPE_STRING: ('S' | 's')('T' | 't')('R' | 'r')('I' | 'i')('N' | 'n')('G' | 'g');
+
+TYPE_NUMBER: ('N' | 'n')('U' | 'u')('M' | 'm')('B' | 'b')('E' | 'e')('R' | 'r');
+
+fragment
+Letter :
+  'a'..'z' |
+  'A'..'Z';
+ 
+fragment
+Digit :
+  '0'..'9';
+
+ID :
+  Letter (Letter | Digit | '_')*;
+
+SEMI: ';';
+
+
+
+
+ 
+
+INT :
+  Digit Digit*;

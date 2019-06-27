@@ -1,0 +1,17 @@
+// entity customer
+entity customer (
+key attr cust_name type string length 10, // customer name
+key attr cust_num type int,
+attr cust_steet type string length 50,
+attr cust_value type number length 14 precision 2,
+attr cust_city type string length 40,
+attr cust_zip_code type string length 15);
+	
+// entity vendor	
+entity vendor (	
+	key attr vendor_number type string length 40,
+	attr vendor_street type string length 40,
+	attr vendor_city type string length 30,
+	key attr vendor_name type string length 50,
+	attr vendor_value type number length 16 precision 4
+	);

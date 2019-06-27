@@ -1,0 +1,22 @@
+/* ********************************************************************************
+ * Customer database schema file
+ * Date: 2013-02-21
+ * Author: Franz Reitmayer
+ *
+ ******************************************************************************** */
+ ENTITY address (
+ 	key attr add_ident type int,
+ 	attr add_street type string length 40,
+ 	attr add_city type string length 40,
+ 	attr add_zip_code type string length 10,
+ 	attr add_hausnr type string length 10,
+ 	attr add_country type string length 2,
+ 	attr add_region type string length 10);
+ 	
+ ENTITY phone_number (
+ 	key attr pho_ident type int,
+ 	attr pho_country_dial type number length 2,
+ 	attr pho_pre_dial type number length 10,
+ 	attr pho_dia type number length 20);
+ 	
+ 	

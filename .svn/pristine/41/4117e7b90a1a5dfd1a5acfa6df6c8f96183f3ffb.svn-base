@@ -1,0 +1,34 @@
+package eu.reitmayer.schemagen.lang;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SchemaOracleUtil {
+
+	
+	public static String getOracleType(String internalType) {
+		internalType = internalType.toLowerCase();
+		if (internalType.equals("string")) {
+			return "VARCHAR2";
+		} else if (internalType.equals("int")) {
+			return "INTEGER";
+		} else if (internalType.equals("number")) {
+			return "NUMERIC";
+		} else if (internalType.equals("date")) {
+			return "DATE";
+		} else if (internalType.equals("timestamp")) {
+			return "TIMESTAMP";
+		}
+		return null;
+	}
+	
+	public static List<String> getKeyList(String tableName, List<TableField> tableFields) {
+		List<String> list = new ArrayList<String>();
+		for (TableField field: tableFields) {
+			if (field.tableName.equals(tableName)) {
+				list.add(field.fieldName);
+			}
+		}
+		return list;
+	}
+}

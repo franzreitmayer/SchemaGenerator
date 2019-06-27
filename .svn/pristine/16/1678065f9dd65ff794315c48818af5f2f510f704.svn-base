@@ -1,0 +1,16 @@
+package eu.reitmayer.schemagen.lang;
+
+public class SchemaOracleUtil {
+
+	public static String getOracleType(String internalType) {
+		internalType = internalType.toLowerCase();
+		if (internalType.equals("string")) {
+			return "VARCHAR2";
+		} else if (internalType.equals("int")) {
+			return "INT";
+		} else if (internalType.equals("number")) {
+			return "NUMERIC";
+		}
+		return null;
+	}
+}

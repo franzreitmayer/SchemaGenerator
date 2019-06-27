@@ -1,0 +1,111 @@
+tree grammar OracleWalker;
+
+options {
+  language = Java;
+  output = template;
+  tokenVocab = SchemaLang;
+  ASTLabelType = CommonTree;
+}
+
+@header{
+package eu.reitmayer.schemagen.lang;
+}
+
+@members {
+	public Schema schema = new Schema();
+	public String currentEntity = "";
+	
+	public String getOracleType(String internalType) {
+	return SchemaOracleUtil.getOracleType(internalType);
+	}
+}
+
+schema_file:
+ ^(SCHEMA ID set_property* sd+=schema_def*) -> file(defs={$sd})
+ 
+	;
+
+schema_def:
+	  e=entity_def -> {$e.st}
+	| dom_def 
+	| elem_def 
+	| ld=link_def -> {$ld.st}
+;
+
+
+set_property:
+	^(SET ID STRING) 
+	;
+	
+entity_def:
+	^(ENTITY ID {currentEntity = $ID.text;} eu+=elem_use+) ->table(name={$ID.text}, 
+																																	cols={$eu}, 
+																																	foreignKeys={SchemaOracleUtil.getForeignKeyDefinitions(schema, $ID.text)},
+																																	keys={schema.getKeysOfEntity($ID.text)},
+																																	line={$ENTITY.line})
+	;
+
+link_def
+	@init{
+		String leftSide = null;
+		String rightSide = null;
+		String linkTableManyToMany = null;
+		String linkOneToOne = null;
+	}
+	:
+	 ^(LINK id=ID (dir=FROM|dir=BETWEEN) left_side=ID (left_card=ONE|left_card=MANY) right_side=ID (right_card=ONE|right_card=MANY))
+	 {
+	 		if ($left_card.text.equals("ONE") && $right_card.text.equals("MANY")) {
+	 			rightSide = "X";
+	 		} else if ($left_card.text.equals("MANY") && $right_card.text.equals("ONE")) {
+	 			leftSide = "X";
+	 		} else if ($left_card.text.equals("MANY") && $right_card.text.equals("MANY")) {
+	 			linkTableManyToMany = "X";
+	 		} else {
+	 			linkOneToOne = "X";
+	 		}
+	 } ->link_definition(
+	 	leftSide={leftSide}
+	 	,rightSide={rightSide}
+	 	,linkTableManyToMany={linkTableManyToMany}
+	 	,linkId={$id.text}
+	 	,leftId={$left_side.text}
+	 	,leftForeignKeys={schema.findEntity($left_side.text).getForeignKeyIds($id.text)}
+	 	,rightForeignKeys={schema.findEntity($right_side.text).getForeignKeyIds($id.text)}
+	 	,rightId={$right_side.text}
+	 	,rightKeys={schema.findEntity($right_side.text).getKeyIds()}
+	 	,leftKeys={schema.findEntity($left_side.text).getKeyIds()}
+	 	,linkTableCols={SchemaOracleUtil.getLinkTableColumns(schema, $left_side.text, $right_side.text)}
+	 	,line={$LINK.line})
+	 ;
+	 
+	 
+dom_def:
+	 ^(DOMAIN ID (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER | t=TYPE_TIMESTAMP | t=TYPE_DATE) (LENGTH l=INT (PRECISION p=INT)? )? )
+	 	->typedef(type={getOracleType($t.text)}, len={$l.text}, precision={$p.text})
+	;
+	
+dom_use:
+	dd=dom_def -> {$dd.st}|
+	^(DOMAIN ID) ->typedef(type={getOracleType(schema.findDomain($ID.text).type)}, len={schema.findDomain($ID.text).length}, precision={schema.findDomain($ID.text).precision})
+	;
+	
+elem_def:
+	^(ELEMENT id=ID (STEXT s=STRING)? (MTEXT m=STRING)? (LTEXT l=STRING)? du=dom_use) ->column(name={$id.text}, type_def={$du.st})
+	;
+	
+
+key_elem_def:
+	^(KEY ed=elem_def) -> {$ed.st}|
+	^(KEY ne=named_elem) -> {$ne.st}
+	;
+	
+named_elem:
+	^(ELEMENT ID) ->column_named(name={$ID.text}, type={getOracleType(schema.findDomain(schema.findElement($ID.text).domain.id).type)}, len={schema.findDomain(schema.findElement($ID.text).domain.id).length}, precision={schema.findDomain(schema.findElement($ID.text).domain.id).precision})
+	;
+	
+elem_use:
+	ed=elem_def -> {$ed.st}|
+	ked=key_elem_def -> {$ked.st}|
+	ne=named_elem -> {$ne.st}
+	;

@@ -1,0 +1,67 @@
+group ErrorMessages;
+
+dom_use() ::= <<
+Erroneous domain usage:
+You can use an already defined domain by its name.
+The syntax is ELEMENT [element_id] STEXT [string] MTEXT [string] LTEXT [string] DOMAIN [domain_id]
+                                                                                ------------------
+>>
+
+dom_def() ::= <<
+Erroneous domain definition:
+Domain definition syntax is:
+DOMAIN [domain_id] TYPE [STRING|INT|NUMBER|DATE|TIMESTAMP] [LENGTH INT [PRECISION INT]]
+>>
+
+entity_def() ::= <<
+Erroneous entity definition:
+Entity definition syntax is:
+ENTITY [entity_id] (
+  [KEY] (element usage),
+  ...
+ );
+ 
+element usage is eigher
+ELEMENT [element_id] --> for previous defined elements
+
+or
+ELEMENT [element_id] STEXT [string] MTEXT [string] LTEXT [string] DOMAIN [domain_id]
+for inline definition of elements with a previous defined domain_id
+
+or
+ELEMENT [element_id] STEXT [string] MTEXT [string] LTEXT [string] 
+DOMAIN [domain_id] TYPE [STRING|INT|NUMBER|DATE|TIMESTAMP] [LENGTH INT [PRECISION INT]]
+for inline element and domain definition.
+
+Use the KEY key word to indicate an element as part of primary key.
+>>
+
+set_property() ::= <<
+Erroneous property statement, usage is:
+SET property_id = property_value;
+
+Currently supported properties are:
+* generate_sql
+>>
+
+schema_def() ::= <<
+Erroneous schema definition. Usage is:
+SCHEMA schema_id;
+
+[(set_propertys)*]
+
+[(entity_definitions)*]
+>>
+
+
+elem_def() ::= <<
+Erroneous element defintion, correct usage is:
+
+ELEMENT [element_id] STEXT [string] MTEXT [string] LTEXT [string] DOMAIN [domain_id]
+with a previous defined domain_id
+
+or
+ELEMENT [element_id] STEXT [string] MTEXT [string] LTEXT [string] 
+DOMAIN [domain_id] TYPE [STRING|INT|NUMBER|DATE|TIMESTAMP] [LENGTH INT [PRECISION INT]]
+for inline domain definition.
+>>

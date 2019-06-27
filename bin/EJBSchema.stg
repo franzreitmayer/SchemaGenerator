@@ -1,0 +1,21 @@
+group EJBSchema;
+
+pojo_class() ::= <<
+package <package_definition(...)>;
+
+<imports(...)>
+
+<class_definition(...)>
+
+>>
+
+
+package_definition() ::= <<
+>>
+
+imports(...) ::= <<
+>>
+
+
+class_definition() ::= <<
+>>

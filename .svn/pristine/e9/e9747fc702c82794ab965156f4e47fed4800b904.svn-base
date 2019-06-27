@@ -1,0 +1,71 @@
+tree grammar OracleWalker;
+
+options {
+  language = Java;
+  output = template;
+  tokenVocab = SchemaLang;
+  ASTLabelType = CommonTree;
+}
+
+@header{
+package eu.reitmayer.schemagen.lang;
+}
+
+@members {
+	public Schema schema = new Schema();
+	public String currentEntity = "";
+	
+	public String getOracleType(String internalType) {
+	return SchemaOracleUtil.getOracleType(internalType);
+	}
+}
+
+schema_file:
+ ^(SCHEMA ID set_property* sd+=schema_def*) -> file(defs={$sd})
+ 
+	;
+
+schema_def:
+	  e=entity_def -> {$e.st}
+	| dom_def 
+	| elem_def 
+;
+
+
+set_property:
+	^(SET ID STRING) 
+	;
+	
+entity_def:
+	^(ENTITY ID {currentEntity = $ID.text;} eu+=elem_use+) ->table(name={$ID.text}, cols={$eu}, keys={schema.getKeysOfEntity($ID.text)})
+	;
+
+dom_def:
+	 ^(DOMAIN ID (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER | t=TYPE_TIMESTAMP | t=TYPE_DATE) (LENGTH l=INT (PRECISION p=INT)? )? )
+	 	->typedef(type={getOracleType($t.text)}, length={$l.text}, precision={$p.text})
+	;
+	
+dom_use:
+	dd=dom_def -> {$dd.st}|
+	^(DOMAIN ID) ->typedef(type={getOracleType(schema.findDomain($ID.text).type)}, length={schema.findDomain($ID.text).length}, precision={schema.findDomain($ID.text).precision})
+	;
+	
+elem_def:
+	^(ELEMENT id=ID (STEXT s=STRING)? (MTEXT m=STRING)? (LTEXT l=STRING)? du=dom_use) ->column(name={$id.text}, type_def={$du.st})
+	;
+	
+
+key_elem_def:
+	^(KEY ed=elem_def) -> {$ed.st}|
+	^(KEY ne=named_elem) -> {$ne.st}
+	;
+	
+named_elem:
+	^(ELEMENT ID) ->column_named(name={$ID.text}, type={getOracleType(schema.findDomain(schema.findElement($ID.text).domain.id).type)}, len={schema.findDomain(schema.findElement($ID.text).domain.id).length}, precision={schema.findDomain(schema.findElement($ID.text).domain.id).precision})
+	;
+	
+elem_use:
+	ed=elem_def -> {$ed.st}|
+	ked=key_elem_def -> {$ked.st}|
+	ne=named_elem -> {$ne.st}
+	;

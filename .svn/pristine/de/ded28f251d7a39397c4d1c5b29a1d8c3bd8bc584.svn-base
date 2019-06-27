@@ -1,0 +1,59 @@
+/*
+setting properties
+*/
+schema customer_db;
+
+set default_locale = "DE_de";
+set generate_sql = "true";
+set generate_jpa = "true";
+set generate_swing_ui = "true";
+set generate_dao = "true";
+
+// defining domains
+domain dom_firstname type string length 30;
+domain dom_lastname type string length 30;
+domain dom_zip_code type string length 10;
+domain dom_ident type number length 8;
+domain dom_net_value type number length 16 precision 4;
+DOMAIN dom_count type int;
+
+// defining data elements
+// ...at first with a named domain...
+element elem_cust_firstname 
+	stext "Vorname des Kunden" 
+	mtext "Kundenvorname" 
+	ltext "V.Name Kun." 
+	domain dom_firstname;
+
+// ...and then with an embeded domain...
+element elem_order_gross_value
+	stext "Bruttobetrag der Bestellungen"
+	mtext "Bruttobetrag"
+	ltext "Brutto"
+	domain dom_order_gross_value type number length 16 precision 2;
+
+// ...define an entity with inline element..
+//
+
+domain dom_key2 type int;
+
+element elem_key2 
+	stext "key2"
+	mtext "key2"
+	ltext "key2"
+	domain dom_key2;
+
+domain dom_key3 type int;
+
+entity test_entity (
+	key element elem_key2,
+	key element elem_key3 stext "key3" mtext "key3" ltext "key3" domain dom_key3,
+	key element elem_key1 stext "key1" mtext "key1" ltext "key1" domain dom_key1 type int, 
+	element elem_order_gross_value,
+	element elem_cust_firstname,
+	element elem_last_name stext "L.Name" mtext "Lastname" ltext "Customer Lastname" domain dom_lastname
+);
+
+domain dom_test_date type date;
+domain dom_test_timestamp type timestamp;
+		

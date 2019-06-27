@@ -1,0 +1,139 @@
+grammar SchemaLang;
+
+options {
+  language = Java;
+  output = AST;
+}
+
+
+@lexer::header {
+package eu.reitmayer.schemagen.lang;
+import java.util.ArrayList;
+import java.util.Dictionary;
+}
+
+@parser::header {
+package eu.reitmayer.schemagen.lang;
+import java.util.ArrayList;
+import java.util.Dictionary;
+}
+
+@members {
+	// key fields: (table, column)
+	public ArrayList<TableField> keyFields = new ArrayList<TableField>();
+	public String currentTable = "";
+}
+
+schema_file:
+	(set_property -> set_property+)*
+	(
+	 (entity_def SEMI) -> entity_def+
+	|(attr_def SEMI) -> attr_def+ 
+	|(dom_def SEMI) -> dom_def+
+	|(elem_def SEMI) -> elem_def+
+	)+
+	 
+	;
+
+set_property:
+	SET ID '=' STRING SEMI
+	;
+	
+entity_def:
+	ENTITY id=ID {currentTable = $id.text;}  '('
+		ua+=use_attr (',' ua+=use_attr)*
+	')' -> ^(ENTITY ID $ua+) 
+	;
+
+dom_def:
+	DOMAIN ID TYPE (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER | t=TYPE_TIMESTAMP | t=TYPE_DATE)(LENGTH l=INT (PRECISION p=INT)?)?
+	-> ^(DOMAIN ID $t $l? $p) ;
+	
+dom_use:
+	dom_def |
+	DOMAIN ID
+	;
+	
+elem_def:
+	ELEMENT ID (LTEXT STRING)? (MTEXT STRING)? (STEXT STRING)? dom_use;
+	
+use_attr:
+	attr_def -> attr_def |
+	key_attr_def -> key_attr_def;
+	
+key_attr_def:
+	KEY a=attr_def {keyFields.add(new TableField(currentTable, $a.field_name));}-> $a ;
+	
+attr_def returns [String field_name]:
+	ATTR id=ID {$field_name = $id.text;} TYPE (t=TYPE_STRING | t=TYPE_INT | t=TYPE_NUMBER)(LENGTH l=INT (PRECISION p=INT)?)?
+	-> ^(ATTR ID $t $l? $p?);
+
+WS :
+  (' ' | '\t' | '\f')+ {$channel=HIDDEN;};
+
+NL :
+   ('\r' '\n' | '\r' | '\n') {$channel=HIDDEN;};
+
+ML :
+  '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;};
+
+SL :
+  '//' (~('\n'|'\r'))* ('\n'|'\r'('\n')?)? {$channel=HIDDEN;};
+
+   
+ATTR: ('A' | 'a')('T' | 't')('T' | 't')('R' | 'r');
+
+TYPE: ('T' | 't')('Y' | 'y')('P' | 'p')('E' | 'e');
+
+KEY: ('K' | 'k')('E' | 'e')('Y' | 'y');
+
+LENGTH: ('L' | 'l')('E' | 'e')('N' | 'n')('G' | 'g')('T' | 't')('H' | 'h');
+
+PRECISION: ('P' | 'p')('R' | 'r')('E' | 'e')('C' | 'c')('I' | 'i')('S' | 's')('I' | 'i')('O' | 'o')('N' | 'n');
+
+ENTITY: ('E' | 'e')('N' | 'n')('T' | 't')('I' | 'i')('T' | 't')('Y' | 'y');
+
+DOMAIN: ('D' | 'd')('O' | 'o')('M' | 'm')('A' | 'a')('I' | 'i')('N' | 'n');
+
+ELEMENT: ('E'|'e')('L'|'l')('E'|'e')('M'|'m')('E'|'e')('N'|'n')('T'|'t');
+
+MTEXT: ('M'|'m')('T'|'t')('E'|'e')('X'|'x')('T'|'t');
+
+LTEXT: ('L'|'l')('T'|'t')('E'|'e')('X'|'x')('T'|'t');
+
+STEXT: ('S'|'s')('T'|'t')('E'|'e')('X'|'x')('T'|'t');
+ 
+TYPE_INT: ('I' | 'i')('N' | 'n')('T' | 't');
+
+TYPE_DATE: ('D' | 'd')('A' | 'a')('T' | 't')('E'|'e');
+
+TYPE_TIMESTAMP: ('T'|'t')('I'|'i')('M'|'m')('E'|'e')('S'|'s')('T'|'t')('A'|'a')('M'|'m')('P'|'p');
+
+SET: ('S' |'s')('E'|'e')('T'|'t');
+
+TYPE_STRING: ('S' | 's')('T' | 't')('R' | 'r')('I' | 'i')('N' | 'n')('G' | 'g');
+
+TYPE_NUMBER: ('N' | 'n')('U' | 'u')('M' | 'm')('B' | 'b')('E' | 'e')('R' | 'r');
+
+fragment
+Letter :
+  'a'..'z' |
+  'A'..'Z';
+ 
+fragment
+Digit :
+  '0'..'9';
+
+ID :
+  Letter (Letter | Digit | '_')*;
+
+SEMI: ';';
+
+
+
+STRING :
+  '"' (~('"'|'\n'|'\r'))* '"';
+ 
+
+INT :
+  Digit Digit*;

@@ -1,0 +1,70 @@
+/* ********************************************************************************
+ * Customer database schema file
+ * Date: 2013-02-21
+ * Author: Franz Reitmayer
+ *
+ ******************************************************************************** */
+schema customer;
+
+set default_locale = "DE_de";
+set generate_sql = "true";
+
+// ...use a generic integer key...
+DOMAIN dom_id TYPE int;
+
+// ...define address domains...
+DOMAIN dom_street 		TYPE string LENGTH 30;
+DOMAIN dom_city 		TYPE string LENGTH 40;
+DOMAIN dom_zip_code 	TYPE string LENGTH 10;
+DOMAIN dom_po_box 		TYPE string LENGTH 10;
+
+// ...define people domains...
+DOMAIN dom_first_name	TYPE string LENGTH 99;
+DOMAIN dom_last_name	TYPE string LENGTH 99;
+DOMAIN dom_birthday		TYPE date;
+
+// ...define contact domains
+DOMAIN dom_phone		TYPE string LENGTH 15;
+DOMAIN dom_fax			TYPE string LENGTH 15;
+DOMAIN dom_email		TYPE string LENGTH 40;
+
+
+// data elements for customers
+ELEMENT cust_id	STEXT "ID" MTEXT "Identifier" LTEXT "Customer Identifier" DOMAIN dom_id;
+ELEMENT cust_first_name	STEXT "F.Name" MTEXT "Firstname" LTEXT "Customer Firstname"	DOMAIN dom_first_name;
+ELEMENT cust_last_name STEXT "L.Name" MTEXT "Lastname" LTEXT "Customer lastname" DOMAIN dom_last_name;
+ELEMENT cust_city STEXT "City" MTEXT "City"	LTEXT "Customer City" DOMAIN dom_city;
+ELEMENT cust_street STEXT "Street" MTEXT "Cust. Street" LTEXT "Customer Address Street" DOMAIN dom_street;
+ELEMENT cust_zip_code STEXT "ZIP" MTEXT "ZIP Code" LTEXT "Customer ZIP Code" DOMAIN dom_zip_code;
+ELEMENT cust_birthday STEXT "B.Day" MTEXT "Birthday" LTEXT "Customer Birthday" DOMAIN dom_birthday;
+ELEMENT cust_phone STEXT "Phone" MTEXT "Cust. Phone" LTEXT "Customer Phone" DOMAIN dom_phone;
+ELEMENT cust_fax STEXT "Fax" MTEXT "Fax Number" LTEXT "Customer Fax Number" DOMAIN dom_fax;
+ELEMENT cust_email STEXT "Email" MTEXT "Email" LTEXT "Customer Email" DOMAIN dom_email;
+
+// define customer entity
+ENTITY customer (
+	KEY ELEMENT cust_id,
+	KEY ELEMENT cust_first_name,
+	ELEMENT cust_last_name,
+	ELEMENT cust_city,
+	ELEMENT cust_street,
+	ELEMENT cust_zip_code,
+	ELEMENT cust_birthday,
+	ELEMENT cust_phone,
+	ELEMENT cust_fax,
+	ELEMENT cust_email );
+	
+	
+// define users table
+ENTITY app_users (
+	KEY ELEMENT user_login STEXT "Login" MTEXT "Login" LTEXT "User Login" domain dom_user_login TYPE int,
+	ELEMENT user_firstname STEXT "F.Name" MTEXT "Firstname" LTEXT "User Firstname" DOMAIN dom_first_name,
+	ELEMENT user_lastname STEXT "L.Name" MTEXT "Lastname" LTEXT "User Lastname" DOMAIN dom_last_name );
+	
+
+LINK user_cust BETWEEN customer ONE AND app_users MANY;
+
+LINK user_cust2 FROM customer MANY AND app_users ONE;
+
+LINK cust_user BETWEEN app_users ONE AND customer MANY; 	
+ 	
